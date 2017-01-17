@@ -1,5 +1,5 @@
 import random
-
+import numpy
 
 class Cell:
     class_num = None
@@ -66,7 +66,8 @@ def _clear_row(row):
     return row
 
 
-def generate_new(rows_num, cols_num):
+# Returns list of lists of Cell instances
+def generate_Euler(rows_num, cols_num):
     if not (isinstance(rows_num, int) and isinstance(cols_num, int)):
         raise ValueError("MazeGenerator.generate_new: rows_num and cols_num must be int")
     maze = []
@@ -93,3 +94,35 @@ def generate_new(rows_num, cols_num):
 
     return maze
 
+
+def _standard_units_to_cells_num(pass_width, border_width, len_in_standard):
+    s = len_in_standard
+    b = border_width
+    p = pass_width
+    return (s-b)//(p+b)
+
+
+def _cells_num_to_standard_units(len_in_cells, pass_width, border_width):
+    n = len_in_cells
+    b = border_width
+    p = pass_width
+    return n*(p+b) + b
+
+
+def generate_in_standard_units(map_height, map_width, pass_width, border_width):
+    if not (isinstance(map_height, int) or (isinstance(map_width, int)) or (isinstance(pass_width, int))
+            or (isinstance(border_width, int))):
+        raise ValueError("All of the parameters must be int")
+
+    rows = _standard_units_to_cells_num(pass_width, border_width, map_height)
+    cols = _standard_units_to_cells_num(pass_width, border_width, map_width)
+    maze = generate_Euler(rows, cols)
+
+    result = [[0 for j in range(map_width)] for i in range(map_height)]
+    height_std = _cells_num_to_standard_units(len(maze), pass_width, border_width)
+    width_std = _standard_units_to_cells_num(len(maze[0]), pass_width, border_width)
+
+    # If height_std < map_height, increase the upmost and bottom-most border width
+
+    # If width_std < map_width, increase the leftmost and rightmost border width
+    pass
