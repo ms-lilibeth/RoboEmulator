@@ -135,7 +135,7 @@ def generate_in_standard_units(map_height, map_width, pass_width, border_width):
 
     rows = _standard_units_to_cells_num(pass_width, border_width, map_height)
     cols = _standard_units_to_cells_num(pass_width, border_width, map_width)
-    maze = generate_Euler(rows, cols)
+    maze = _generate_Euler(rows, cols)
 
     result = np.zeros((map_height, map_width), dtype=int)
     height_std = _cells_num_to_standard_units(len(maze), pass_width, border_width)
