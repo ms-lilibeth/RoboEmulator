@@ -10,16 +10,11 @@ import scipy.misc
 # maze = _generate_Euler(10, 10)
 # _print_raw(maze)
 # exit()
-width = 150
-height = 150
-pass_width = 16
-border_width = 4
+width = 990
+height = 900
+pass_width = 35  # min -- 16
+border_width = 6
 
-maze = generate_in_standard_units(width, height, pass_width, border_width)
-with open("maze.txt", 'w') as f:
-    for row in maze:
-        for i in row:
-            f.write(str(i) + " ")
-        f.write("\n")
+maze = generate_in_standard_units(width, height, pass_width, border_width, filename_out="maze.txt")
 
 scipy.misc.imsave('maze.png', maze)

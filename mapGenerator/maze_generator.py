@@ -2,6 +2,7 @@ import random
 import numpy as np
 from copy import deepcopy
 
+
 class Cell:
     class_num = None
     has_right_border = False
@@ -90,22 +91,13 @@ def _generate_Euler(rows_num, cols_num):
     curr_row = [Cell(i) for i in range(cols_num)]
 
     # Generating all rows but last
-    for i in range(rows_num - 1):
+    for i in range(rows_num):
         if i != 0:
             curr_row = _copy_and_clear_row(curr_row)
         curr_row = _set_right_borders(curr_row)
         curr_row = _set_bottom_borders(curr_row)
         maze.append(curr_row[:])
 
-    # Generating the last row
-    curr_row = _copy_and_clear_row(curr_row)
-    for current, next in zip(curr_row, curr_row[1:]):
-        current.has_bottom_border = True
-        if current.class_num != next.class_num:
-            current.has_right_border = False
-            next.class_num = current.class_num
-    curr_row[-1].has_bottom_border = True
-    maze.append(curr_row[:])
     return maze
 
 
@@ -128,7 +120,7 @@ def _print_raw(maze):
         _print_row(row)
 
 
-def generate_in_standard_units(map_height, map_width, pass_width, border_width):
+def generate_in_standard_units(map_width, map_height, pass_width, border_width, filename_out=None):
     if not (isinstance(map_height, int) or (isinstance(map_width, int)) or (isinstance(pass_width, int))
             or (isinstance(border_width, int))):
         raise ValueError("All of the parameters must be int")
@@ -142,10 +134,8 @@ def generate_in_standard_units(map_height, map_width, pass_width, border_width):
     result = np.zeros((map_height, map_width), dtype=int)
     height_std = _cells_num_to_standard_units(len(maze), pass_width, border_width)
     width_std = _cells_num_to_standard_units(len(maze[0]), pass_width, border_width)
-    d_top = border_width  # lately we'll draw only right and bottom borders
-    d_bottom = 0
-    d_left = border_width  # lately we'll draw only right and bottom borders
-    d_right = 0
+
+    d_top, d_bottom, d_left, d_right = 0, 0, 0, 0
 
     # If height_std < map_height, increase the upmost and bottom-most border width
     tmp = (map_height - height_std) // 2
@@ -155,16 +145,12 @@ def generate_in_standard_units(map_height, map_width, pass_width, border_width):
     tmp = (map_width - width_std) // 2
     d_left += tmp
     d_right += (map_width - width_std) - tmp
-
-    # Draw extra borders (including extra borders)
-    result[:d_top] = 1
-    result[map_height - d_bottom:] = 1
-    result[:, :d_left] = 1
-    result[:, map_width - d_right:] = 1
+    # Lately we'll draw only right and bottom borders
+    d_top += border_width
+    d_left += border_width
 
     #  We draw only right and bottom borders
-    # TMP a[top_i : top_i + (pass_w + border_w), left_i : left_i +  (pass_w + border_w)] = ...
-    top_i = d_top # index of the top of the cell
+    top_i = d_top  # index of the top of the cell
     p = pass_width
     b = border_width
     for row in maze:
@@ -177,4 +163,12 @@ def generate_in_standard_units(map_height, map_width, pass_width, border_width):
             left_i += p + b
         top_i += p + b
 
+    # Saving to the file
+    if filename_out is not None:
+        with open(filename_out, 'w') as f:
+            f.write(str(map_width) + " " + str(map_height) + "\n")
+            for row in result:
+                for i in row:
+                    f.write(str(i) + " ")
+                f.write("\n")
     return result
