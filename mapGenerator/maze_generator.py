@@ -136,10 +136,12 @@ def generate_in_standard_units(map_height, map_width, pass_width, border_width):
     rows = _standard_units_to_cells_num(pass_width, border_width, map_height)
     cols = _standard_units_to_cells_num(pass_width, border_width, map_width)
     maze = _generate_Euler(rows, cols)
+    # TEST
+    _print_raw(maze)
 
     result = np.zeros((map_height, map_width), dtype=int)
     height_std = _cells_num_to_standard_units(len(maze), pass_width, border_width)
-    width_std = _standard_units_to_cells_num(len(maze[0]), pass_width, border_width)
+    width_std = _cells_num_to_standard_units(len(maze[0]), pass_width, border_width)
     d_top = border_width  # lately we'll draw only right and bottom borders
     d_bottom = 0
     d_left = border_width  # lately we'll draw only right and bottom borders
@@ -157,22 +159,22 @@ def generate_in_standard_units(map_height, map_width, pass_width, border_width):
     # Draw extra borders (including extra borders)
     result[:d_top] = 1
     result[map_height - d_bottom:] = 1
-    result[:, d_left] = 1
+    result[:, :d_left] = 1
     result[:, map_width - d_right:] = 1
 
     #  We draw only right and bottom borders
     # TMP a[top_i : top_i + (pass_w + border_w), left_i : left_i +  (pass_w + border_w)] = ...
-    top_i = d_top + 1  # index of the top of the cell
+    top_i = d_top # index of the top of the cell
     p = pass_width
     b = border_width
     for row in maze:
-        left_i = d_left + 1  # index of the left side of the cell
+        left_i = d_left  # index of the left side of the cell
         for cell in row:
             if cell.has_right_border:
                 result[top_i : (top_i + p + b), left_i + p : (left_i + p) + b] = 1
             if cell.has_bottom_border:
                 result[top_i + p : (top_i + p) + b, left_i: (left_i + p + b)] = 1
-            top_i += p + b
             left_i += p + b
+        top_i += p + b
 
     return result
