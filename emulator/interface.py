@@ -9,11 +9,12 @@ def get_screen_size():
     return rect.width(), rect.height()
 
 
-class roboCanvasWidget(QWidget):
+# Draws the robot and the maze on the canvas. Checks collisions
+class Board(QWidget):
     def __init__(self, img_filepath):
         if not os.path.exists(img_filepath):
             raise ValueError("Image does not exist")
-        super(roboCanvasWidget, self).__init__()
+        super(Board, self).__init__()
         self.timer = QBasicTimer()
         self.img = QImage().load(img_filepath)
         self._layout_main = QHBoxLayout()
@@ -55,11 +56,22 @@ class roboCanvasWidget(QWidget):
         painter.drawImage(QPoint(0, 0), image)
         self.image = new_img
 
+    def draw_robot(self, position, angle):
+        pass
 
-class controlWidget(QWidget):
+
+class Robot:
+    _center_position = None
+    _angle = 0
+
     def __init__(self):
-        super(controlWidget, self).__init__()
-        self._engines_binded = False
+        pass
+
+
+class ControlWidget(QWidget):
+    def __init__(self):
+        super(ControlWidget, self).__init__()
+        self._engines_binded = True
         self._powers_binded = True
         self._engines_layout = None
         self._vbox_main = QVBoxLayout()
@@ -79,8 +91,9 @@ class controlWidget(QWidget):
 
     def _get_engines_binded_layout(self):
         vbox_engine = QVBoxLayout()
-        bttn_forward = QPushButton("Fwd")
-        bttn_backward = QPushButton("Bwd")
+        bttn_forward, bttn_backward = QPushButton(), QPushButton()
+        bttn_forward.setIcon(QIcon("./assets/arrow-up.png"))
+        bttn_backward.setIcon(QIcon("./assets/arrow-down.png"))
         vbox_engine.addWidget(bttn_forward)
         vbox_engine.addWidget(bttn_backward)
         return vbox_engine
@@ -90,10 +103,13 @@ class controlWidget(QWidget):
         vbox_left = QVBoxLayout()
         vbox_right = QVBoxLayout()
 
-        bttn_left_forward = QPushButton("Fwd")
-        bttn_left_backward = QPushButton("Bwd")
-        bttn_right_forward = QPushButton("Fwd")
-        bttn_right_backward = QPushButton("Bwd")
+        bttn_left_forward, bttn_left_backward, bttn_right_forward, bttn_right_backward = QPushButton(), QPushButton(), \
+                                                                                         QPushButton(), QPushButton()
+
+        bttn_left_forward.setIcon(QIcon("./assets/arrow-up.png"))
+        bttn_left_backward.setIcon(QIcon("./assets/arrow-down.png"))
+        bttn_right_forward.setIcon(QIcon("./assets/arrow-up.png"))
+        bttn_right_backward.setIcon(QIcon("./assets/arrow-down.png"))
         lbl_l = QLabel("L")
         lbl_r = QLabel("R")
         lbl_l.setAlignment(Qt.AlignCenter)
@@ -112,3 +128,10 @@ class controlWidget(QWidget):
         hbox_engine.addLayout(vbox_left)
         hbox_engine.addLayout(vbox_right)
         return hbox_engine
+
+
+# groups RobotCanvas and Control widgets
+class MainWidget(QWidget):
+    def __init__(self):
+        # self.resize(250, 150)
+        self.center()
