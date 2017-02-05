@@ -4,11 +4,8 @@ import sys
 from PyQt5.QtWidgets import QApplication
 
 app = QApplication(sys.argv)
-# print(UI.get_screen_size())
-# tmp = UI.roboCanvasWidget("./assets/robo.png")
-tmp = UI.controlWidget()
-tmp.show()
-
+e = UI.Emulator()
+e.update()
 sys.exit(app.exec_())
 
 
