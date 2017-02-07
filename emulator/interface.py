@@ -3,9 +3,9 @@ from PyQt5.QtCore import QSize, Qt, QBasicTimer, QPoint
 from PyQt5.QtGui import QIcon, QFont, QImage, qRgb, QPixmap, QTransform
 import os
 import sys, random
-from PyQt5.QtWidgets import QMainWindow, QFrame, QDesktopWidget, QApplication
+from PyQt5.QtWidgets import QMainWindow, QFrame, QDesktopWidget, QApplication, QScrollArea, QGraphicsView
 from PyQt5.QtCore import Qt, QBasicTimer, pyqtSignal, QRectF
-from PyQt5.QtGui import QPainter, QColor
+from PyQt5.QtGui import QPainter, QColor, QPalette
 
 
 def get_screen_size():
@@ -19,8 +19,6 @@ class Emulator(QWidget):
         super().__init__()
         self._control = ControlWidget()
         self._board = BoardWidget()
-        # self._board.show()
-        # self._control.show()
         self.initUI()
         self.show()
 
@@ -30,16 +28,9 @@ class Emulator(QWidget):
         layout.addStretch(1)
         layout.addWidget(self._board)
         self.setLayout(layout)
-        # self.center()
         self.setWindowTitle('Robot Emulator')
         self.setWindowIcon(QIcon("./assets/robo.png"))
         self._board.update()
-
-    def center(self):
-        screen = QDesktopWidget().screenGeometry()
-        size = self.geometry()
-        self.move((screen.width() - size.width()) / 2,
-                  (screen.height() - size.height()) / 2)
 
 
 class ControlWidget(QFrame):
@@ -110,40 +101,41 @@ class BoardWidget(QWidget):
         self.timer = QBasicTimer()
         self._width = 300
         self._height = 300
-        self._robot_pixmap = QPixmap("robo.png")
-        # self._board = [0 for i in range(self._width*self._height)]
+        self._robot_pixmap = QPixmap("./assets/robo.png")
+        self._board_pixmap = QPixmap(self._width, self._height)
+        self._board_pixmap.fill(QColor(0xffffff))
+        self._label = QLabel()
+        self._label.setPixmap(self._board_pixmap)
+        self._layout = QVBoxLayout()
         self.initUI()
-        # self.show()
-        # self.update()
 
     def initUI(self):
-        self.setStyleSheet("QWidget { background: #123456 }")
-        self.setFixedSize(300, 300)
+        scroll = QScrollArea()
+        scroll.setBackgroundRole(QPalette.Dark)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        scroll.setWidget(self._label)
+        scroll.setWidgetResizable(True)
+
+        self._layout.addWidget(scroll)
+        self.setLayout(self._layout)
+        self.setMinimumSize(300, 300)
         self.setWindowTitle("Robot Emulator")
-        # self._field.fill(Qt.red)
-        # lbl = QLabel()
-        # lbl.setPixmap(self._field)
-        # lbl.setSizePolicy(QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed))
-        # lbl.setFixedSize(300, 300)
-        # self._layout_main.addWidget(lbl)
-        # self.setGeometry(300, 300, 280, 170)
-        # scroll = QtGui.QScrollArea()
-        # scroll.setWidget(mygroupbox)
-        # scroll.setWidgetResizable(True)
-        # scroll.setFixedHeight(400)
-        # layout.addWidget(scroll)
+
+    def wheelEvent(self, event):
+        pass
 
     def paintEvent(self, QPaintEvent):
-        painter = QPainter(self)
-        self.draw_robot(painter, 50, 50)
+        self.draw_robot(0, 0, 0)
 
-    def draw_robot(self, painter, x, y):
-        color = QColor(0x000000)
-        xc, yc = 75, 75
+    def draw_robot(self, x, y, angle):
+        painter = QPainter(self._board_pixmap)
+        xc, yc = 75, 75  # point to rotate around
         painter.translate(xc, yc)
-        painter.rotate(45)
+        painter.rotate(angle)
         target = QRectF(x + 1, y + 1, 60, 40)
         source = QRectF(0., 0., self._robot_pixmap.width(), self._robot_pixmap.height())
+        # painter.fillRect(x + 1, y + 1, 60, 40, QColor(0x000000))
         painter.drawPixmap(target, self._robot_pixmap, source)
-        # painter.fillRect(x + 1, y + 1, 60, 40, color)
-        painter.resetTransform()
+        self._label.setPixmap(self._board_pixmap)
+        painter.end()
