@@ -8,21 +8,27 @@ class Robot:
         pass
 
     def left_engine_forward(self):
+        print("LE fwd")
         pass
 
     def left_engine_backward(self):
+        print("LE bwd")
         pass
 
     def right_engine_forward(self):
+        print("RE fwd")
         pass
 
     def right_engine_backward(self):
+        print("RE bwd")
         pass
 
     def both_engines_forward(self):
+        print("BE fwd")
         pass
 
     def both_engines_backward(self):
+        print("BE bwd")
         pass
 
     def change_left_engine_power(self, value):
@@ -30,9 +36,11 @@ class Robot:
         if value > 100 or value < -100:
             raise ValueError("Incorrect engine power value")
         self._l_power = value
+        print("LE power: ", value)
 
     def change_right_engine_power(self, value):
         value = int(value)
         if value > 100 or value < -100:
             raise ValueError("Incorrect engine power value")
         self._r_power = value
+        print("RE power: ", value)
