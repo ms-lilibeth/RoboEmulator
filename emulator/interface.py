@@ -1,4 +1,5 @@
-from PyQt5.QtWidgets import (QWidget, QBoxLayout, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QSizePolicy)
+from PyQt5.QtWidgets import (QWidget, QBoxLayout, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QSizePolicy,
+                             QStackedLayout, QSlider, QLineEdit, QTextEdit)
 from PyQt5.QtCore import QSize, Qt, QBasicTimer, QPoint
 from PyQt5.QtGui import QIcon, QFont, QImage, qRgb, QPixmap, QTransform
 import os
@@ -36,40 +37,107 @@ class Emulator(QWidget):
 class ControlWidget(QFrame):
     def __init__(self):
         super().__init__()
-        self._engines_binded = True
-        self._powers_binded = True
-        self._engines_layout = None
+        self._is_binded_engines = True
+        self._is_binded_powers = True
+        self._engines_binded_widget = EnginesBindedWidget()
+        self._engines_not_binded_widget = EnginesNotBindedWidget()
+        self._engines_layout = QStackedLayout()
         self._vbox_main = QVBoxLayout()
-        self.initUI()
-        # self.show()
 
-    def initUI(self):
-        if self._engines_binded:
-            self._engines_layout = self._get_engines_binded_layout()
-        else:
-            self._engines_layout = self._get_engines_not_binded_layout()
+        self._bttn_bind_engines = QPushButton("Bind")
+        self._bttn_bind_powers = QPushButton("Bind")
+
+        self._l_power = QSlider(Qt.Horizontal)
+        self._r_power = QSlider(Qt.Horizontal)
+        self._lp_txt = QLabel("0")  # presents current power num.
+        self._rp_txt = QLabel("0")  # presents current power num.
+
+        self._initUI()
+
+    def _initUI(self):
+        self._bttn_bind_engines.setCheckable(True)
+        self._bttn_bind_powers.setCheckable(True)
+
+        self._l_power.setMinimum(-100)
+        self._l_power.setMaximum(100)
+        self._r_power.setMinimum(-100)
+        self._r_power.setMaximum(100)
+        self._l_power.setTickInterval(1)
+        self._r_power.setTickInterval(1)
+
+        ep_lbl = QLabel("Engine Power")
+        ep_lbl.setAlignment(Qt.AlignCenter)
+
+        lp_label = QLabel("L")
+        rp_label = QLabel("R")
+        s_lbl_layout = QHBoxLayout()  # contains L and R labels for sliders
+        s_lbl_layout.addStretch(1)
+        s_lbl_layout.addWidget(lp_label)
+        s_lbl_layout.addStretch(2)
+        s_lbl_layout.addWidget(rp_label)
+        s_lbl_layout.addStretch(1)
+
+        sliders_layout = QHBoxLayout()
+        sliders_layout.addWidget(self._l_power)
+        sliders_layout.addSpacing(1)
+        sliders_layout.addWidget(self._r_power)
+
+        self._lp_txt.setAlignment(Qt.AlignCenter)
+        self._rp_txt.setAlignment(Qt.AlignCenter)
+        # self._lp_txt.setFixedSize(50, 30)
+        s_txt_layout = QHBoxLayout()
+        s_txt_layout.addSpacing(1)
+        s_txt_layout.addWidget(self._lp_txt)
+        s_txt_layout.addSpacing(4)
+        s_txt_layout.addWidget(self._rp_txt)
+        s_txt_layout.addSpacing(1)
+
+        self._engines_layout.addWidget(self._engines_binded_widget)
+        self._engines_layout.addWidget(self._engines_not_binded_widget)
         self._vbox_main.addLayout(self._engines_layout)
+        self._vbox_main.addWidget(self._bttn_bind_engines)
+        self._vbox_main.addStretch(1)
+        self._vbox_main.addWidget(ep_lbl)
+        self._vbox_main.addLayout(s_lbl_layout)
+        self._vbox_main.addLayout(sliders_layout)
+        self._vbox_main.addLayout(s_txt_layout)
+        self._vbox_main.addWidget(self._bttn_bind_powers)
+
         self.setLayout(self._vbox_main)
         self.setGeometry(50, 50, 600, 600)
         self.setWindowTitle('Robot Controller')
 
-    def _get_engines_binded_layout(self):
+
+class EnginesBindedWidget(QWidget):
+    def __init__(self):
+        super().__init__()
+        self._initUI()
+
+    def _initUI(self):
         vbox_engine = QVBoxLayout()
         bttn_forward, bttn_backward = QPushButton(), QPushButton()
         bttn_forward.setIcon(QIcon("./assets/arrow-up.png"))
         bttn_backward.setIcon(QIcon("./assets/arrow-down.png"))
         vbox_engine.addWidget(bttn_forward)
         vbox_engine.addWidget(bttn_backward)
-        return vbox_engine
+        vbox_engine.addStretch(1)
 
-    def _get_engines_not_binded_layout(self):
+        self.setLayout(vbox_engine)
+
+
+class EnginesNotBindedWidget(QWidget):
+    def __init__(self):
+        super().__init__()
+        self._initUI()
+
+    def _initUI(self):
         hbox_engine = QHBoxLayout()
         vbox_left = QVBoxLayout()
         vbox_right = QVBoxLayout()
-
-        bttn_left_forward, bttn_left_backward, bttn_right_forward, bttn_right_backward = QPushButton(), QPushButton(), \
-                                                                                         QPushButton(), QPushButton()
-
+        bttn_left_forward = QPushButton()
+        bttn_left_backward = QPushButton()
+        bttn_right_forward = QPushButton()
+        bttn_right_backward = QPushButton()
         bttn_left_forward.setIcon(QIcon("./assets/arrow-up.png"))
         bttn_left_backward.setIcon(QIcon("./assets/arrow-down.png"))
         bttn_right_forward.setIcon(QIcon("./assets/arrow-up.png"))
@@ -84,15 +152,17 @@ class ControlWidget(QFrame):
         vbox_left.addWidget(lbl_l)
         vbox_left.addWidget(bttn_left_forward)
         vbox_left.addWidget(bttn_left_backward)
+        vbox_left.addStretch(1)
 
         vbox_right.addWidget(lbl_r)
         vbox_right.addWidget(bttn_right_forward)
         vbox_right.addWidget(bttn_right_backward)
+        vbox_right.addStretch(1)
 
         hbox_engine.addLayout(vbox_left)
         hbox_engine.addLayout(vbox_right)
-        return hbox_engine
 
+        self.setLayout(hbox_engine)
 
 # Draws the robot and the maze on the canvas. Checks collisions
 class BoardWidget(QWidget):
