@@ -5,7 +5,7 @@ from PyQt5.QtGui import QIcon, QFont, QImage, qRgb, QPixmap, QTransform
 import os
 import sys, random
 from PyQt5.QtWidgets import QMainWindow, QFrame, QDesktopWidget, QApplication, QScrollArea, QGraphicsView
-from PyQt5.QtCore import Qt, QBasicTimer, pyqtSignal, QRectF
+from PyQt5.QtCore import Qt, QBasicTimer, pyqtSignal, QRect
 from PyQt5.QtGui import QPainter, QColor, QPalette
 from robot import Robot
 # from emulator.robot import Robot
@@ -18,9 +18,9 @@ def get_screen_size():
 class Emulator(QWidget):
     def __init__(self):
         super().__init__()
-        self._robot = Robot()
-        self._control = ControlWidget(self._robot)
         self._board = BoardWidget()
+        self._robot = Robot(self._board.draw_robot, 0, 0, 180)  # rotation vector is reverted
+        self._control = ControlWidget(self._robot)
         self.initUI()
         self.show()
 
@@ -241,6 +241,8 @@ class BoardWidget(QWidget):
         self._width = 300
         self._height = 300
         self._robot_pixmap = QPixmap("./assets/robo.png")
+        self._robot_depicted_width = self._robot_pixmap.width()
+        self._robot_depicted_height = self._robot_pixmap.height()
         self._board_pixmap = QPixmap(self._width, self._height)
         self._board_pixmap.fill(QColor(0xffffff))
         self._label = QLabel()
@@ -265,16 +267,22 @@ class BoardWidget(QWidget):
         pass
 
     def paintEvent(self, QPaintEvent):
-        self.draw_robot(0, 0, 0)
+        self.draw_robot(0, 0, 0, (0, 0))
 
-    def draw_robot(self, x, y, angle):
+    def draw_robot(self, pos_delta, angle, rotation_point):
         painter = QPainter(self._board_pixmap)
-        xc, yc = 75, 75  # point to rotate around
+        xc, yc = rotation_point  # point to rotate around
         painter.translate(xc, yc)
         painter.rotate(angle)
-        target = QRectF(x + 1, y + 1, 60, 40)
-        source = QRectF(0., 0., self._robot_pixmap.width(), self._robot_pixmap.height())
-        # painter.fillRect(x + 1, y + 1, 60, 40, QColor(0x000000))
+        x, y = pos_delta # TODO: fix it
+        target = QRect(x + 1, y + 1, self._robot_depicted_width, self._robot_depicted_height)
+        source = QRect(0., 0., self._robot_pixmap.width(), self._robot_pixmap.height())
         painter.drawPixmap(target, self._robot_pixmap, source)
         self._label.setPixmap(self._board_pixmap)
         painter.end()
+
+
+# Contains the business-logic of the board: robot position, collisions, e t.c.
+class Board:
+    def __init__(self):
+        pass
