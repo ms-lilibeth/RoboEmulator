@@ -1,38 +1,16 @@
 from PyQt5.QtWidgets import (QWidget, QBoxLayout, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QSizePolicy,
-                             QStackedLayout, QSlider, QLineEdit, QTextEdit)
+                             QStackedLayout, QSlider)
 from PyQt5.QtCore import QSize, Qt, QBasicTimer, QPoint
 from PyQt5.QtGui import QIcon, QFont, QImage, qRgb, QPixmap, QTransform
-import os
-import sys, random
 from PyQt5.QtWidgets import QMainWindow, QFrame, QDesktopWidget, QApplication, QScrollArea, QGraphicsView
 from PyQt5.QtCore import Qt, QBasicTimer, pyqtSignal, QRect
 from PyQt5.QtGui import QPainter, QColor, QPalette
-from robot import Robot
+
+
 # from emulator.robot import Robot
 def get_screen_size():
     rect = QDesktopWidget().screenGeometry()
     return rect.width(), rect.height()
-
-
-# Joins control widget and the board
-class Emulator(QWidget):
-    def __init__(self):
-        super().__init__()
-        self._board = BoardWidget()
-        self._robot = Robot(self._board.draw_robot, 0, 0, 180)  # rotation vector is reverted
-        self._control = ControlWidget(self._robot)
-        self.initUI()
-        self.show()
-
-    def initUI(self):
-        layout = QBoxLayout(QBoxLayout.RightToLeft, self)
-        layout.addWidget(self._control)
-        layout.addStretch(1)
-        layout.addWidget(self._board)
-        self.setLayout(layout)
-        self.setWindowTitle('Robot Emulator')
-        self.setWindowIcon(QIcon("./assets/robo.png"))
-        self._board.update()
 
 
 class ControlWidget(QFrame):
@@ -235,11 +213,11 @@ class EnginesNotBindedWidget(QWidget):
 
 # Draws the robot and the maze on the canvas. Checks collisions
 class BoardWidget(QWidget):
-    def __init__(self):
+    def __init__(self, width, height):
         super().__init__()
         self.timer = QBasicTimer()
-        self._width = 300
-        self._height = 300
+        self._width = width
+        self._height = height
         self._robot_pixmap = QPixmap("./assets/robo.png")
         self._robot_depicted_width = self._robot_pixmap.width()
         self._robot_depicted_height = self._robot_pixmap.height()
@@ -269,20 +247,48 @@ class BoardWidget(QWidget):
     def paintEvent(self, QPaintEvent):
         self.draw_robot(0, 0, 0, (0, 0))
 
-    def draw_robot(self, pos_delta, angle, rotation_point):
+    def draw_robot(self, left_top_pos, angle, rotation_point):
         painter = QPainter(self._board_pixmap)
         xc, yc = rotation_point  # point to rotate around
         painter.translate(xc, yc)
         painter.rotate(angle)
-        x, y = pos_delta # TODO: fix it
+        x, y = left_top_pos
         target = QRect(x + 1, y + 1, self._robot_depicted_width, self._robot_depicted_height)
         source = QRect(0., 0., self._robot_pixmap.width(), self._robot_pixmap.height())
         painter.drawPixmap(target, self._robot_pixmap, source)
         self._label.setPixmap(self._board_pixmap)
         painter.end()
 
+    def get_size(self):
+        return self._width, self._height
 
-# Contains the business-logic of the board: robot position, collisions, e t.c.
-class Board:
+
+# Joins control widget and the board
+class MainView(QWidget):
+
     def __init__(self):
+        super().__init__()
+        self._board_view = BoardWidget()
+        # self._robot = Robot(self._board_view.draw_robot, 0, 0, 180)  # rotation vector is reverted
+        self._control = ControlWidget(self._robot)
+        self.initUI()
+        self.show()
+        self._hscale_factor = 1
+        self._vscale_factor = 1
+
+    def initUI(self):
+        layout = QBoxLayout(QBoxLayout.RightToLeft, self)
+        layout.addWidget(self._control)
+        layout.addStretch(1)
+        layout.addWidget(self._board_view)
+        self.setLayout(layout)
+        self.setWindowTitle('Robot Emulator')
+        self.setWindowIcon(QIcon("./assets/robo.png"))
+        self._board_view.update()
+
+    def draw_board(self, board):
+        # update scale factors
+        pass
+
+    def draw_robot(self, left_top_pos, angle):
         pass
