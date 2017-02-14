@@ -15,9 +15,8 @@ def get_screen_size():
 
 class ControlWidget(QFrame):
 
-    def __init__(self, robot):
+    def __init__(self):
         super().__init__()
-        self._robot = robot
         self._is_binded_engines = True
         self._is_binded_powers = True
         self._engines_binded_widget = EnginesBindedWidget()
@@ -94,26 +93,26 @@ class ControlWidget(QFrame):
         self.setGeometry(50, 50, 600, 600)
         self.setWindowTitle('Robot Controller')
 
-        # ====== Bind ======
-        self._engines_binded_widget.bttn_forward.clicked.connect(self._robot.both_engines_forward)
-        self._engines_binded_widget.bttn_backward.clicked.connect(self._robot.both_engines_backward)
-        self._engines_not_binded_widget.bttn_left_forward.clicked.connect(self._robot.left_engine_forward)
-        self._engines_not_binded_widget.bttn_left_backward.clicked.connect(self._robot.left_engine_backward)
-        self._engines_not_binded_widget.bttn_right_forward.clicked.connect(self._robot.right_engine_forward)
-        self._engines_not_binded_widget.bttn_right_backward.clicked.connect(self._robot.right_engine_backward)
+        bttn_reset.clicked.connect(self._power_reset_to_zero)
+        self._l_power.valueChanged.connect(lp_txt.setNum)
+        self._r_power.valueChanged.connect(rp_txt.setNum)
 
         self._bttn_bind_engines.clicked.connect(self._bttn_bind_engines_clicked)
         self._bttn_bind_powers.clicked.connect(self._bttn_bind_powers_clicked)
 
-        self._l_power.valueChanged.connect(lp_txt.setNum)
-        self._r_power.valueChanged.connect(rp_txt.setNum)
-
-        self._l_power.valueChanged.connect(self._robot.change_left_engine_power)
-        self._r_power.valueChanged.connect(self._robot.change_right_engine_power)
-
-        bttn_reset.clicked.connect(self._power_reset_to_zero)
         self._bind_engines()  # as a default, engines are binded
         self._bind_powers()  # as a default, powers are binded
+
+    # Not used. We bind buttons from outside
+    # def _connect_buttons(self):
+    #     self._engines_binded_widget.bttn_forward.clicked.connect(self._robot.both_engines_forward)
+    #     self._engines_binded_widget.bttn_backward.clicked.connect(self._robot.both_engines_backward)
+    #     self._engines_not_binded_widget.bttn_left_forward.clicked.connect(self._robot.left_engine_forward)
+    #     self._engines_not_binded_widget.bttn_left_backward.clicked.connect(self._robot.left_engine_backward)
+    #     self._engines_not_binded_widget.bttn_right_forward.clicked.connect(self._robot.right_engine_forward)
+    #     self._engines_not_binded_widget.bttn_right_backward.clicked.connect(self._robot.right_engine_backward)
+    #     self._l_power.valueChanged.connect(self._robot.change_left_engine_power)
+    #     self._r_power.valueChanged.connect(self._robot.change_right_engine_power)
 
     def _bind_engines(self):
         self._engines_layout.setCurrentIndex(1)
@@ -149,6 +148,29 @@ class ControlWidget(QFrame):
         self._l_power.setValue(0)
         self._r_power.setValue(0)
 
+    def set_left_forward_handler(self, handler):
+        self._engines_not_binded_widget.bttn_left_forward.clicked.connect(handler)
+
+    def set_left_backward_handler(self, handler):
+        self._engines_not_binded_widget.bttn_left_backward.clicked.connect(handler)
+
+    def set_right_forward_handler(self, handler):
+        self._engines_not_binded_widget.bttn_right_forward.clicked.connect(handler)
+
+    def set_right_backward_handler(self, handler):
+        self._engines_not_binded_widget.bttn_right_backward.clicked.connect(handler)
+
+    def set_both_forward_handler(self, handler):
+        self._engines_binded_widget.bttn_forward.clicked.connect(handler)
+
+    def set_both_backward_handler(self, handler):
+        self._engines_binded_widget.bttn_backward.clicked.connect(handler)
+
+    def set_left_power_changed_handler(self, handler):
+        self._l_power.valueChanged.connect(handler)
+
+    def set_right_power_changed_handler(self, handler):
+        self._r_power.valueChanged.connect(handler)
 
 class EnginesBindedWidget(QWidget):
 
@@ -213,15 +235,15 @@ class EnginesNotBindedWidget(QWidget):
 
 # Draws the robot and the maze on the canvas. Checks collisions
 class BoardWidget(QWidget):
-    def __init__(self, width, height):
+    def __init__(self, map_filename, width, height, robot_width, robot_height):
         super().__init__()
         self.timer = QBasicTimer()
         self._width = width
         self._height = height
         self._robot_pixmap = QPixmap("./assets/robo.png")
-        self._robot_depicted_width = self._robot_pixmap.width()
-        self._robot_depicted_height = self._robot_pixmap.height()
-        self._board_pixmap = QPixmap(self._width, self._height)
+        self._robot_width = robot_width
+        self._robot_height = robot_height
+        self._board_pixmap = QPixmap(width, height)
         self._board_pixmap.fill(QColor(0xffffff))
         self._label = QLabel()
         self._label.setPixmap(self._board_pixmap)
@@ -238,22 +260,23 @@ class BoardWidget(QWidget):
 
         self._layout.addWidget(scroll)
         self.setLayout(self._layout)
-        self.setMinimumSize(300, 300)
+        self.setMinimumSize(400, 400)
         self.setWindowTitle("Robot Emulator")
 
     def wheelEvent(self, event):
         pass
 
-    def paintEvent(self, QPaintEvent):
-        self.draw_robot(0, 0, 0, (0, 0))
+    def refresh(self):
+        self._board_pixmap.fill(QColor(0xffffff))
 
-    def draw_robot(self, left_top_pos, angle, rotation_point):
+    # TODO: BoardWidget -- draw_robot
+    def draw_robot(self, top_left, angle):
         painter = QPainter(self._board_pixmap)
-        xc, yc = rotation_point  # point to rotate around
+        xc, yc = top_left  # point to rotate around: top left corner
         painter.translate(xc, yc)
         painter.rotate(angle)
-        x, y = left_top_pos
-        target = QRect(x + 1, y + 1, self._robot_depicted_width, self._robot_depicted_height)
+        x, y = top_left
+        target = QRect(x + 1, y + 1, self._robot_width, self._robot_height)
         source = QRect(0., 0., self._robot_pixmap.width(), self._robot_pixmap.height())
         painter.drawPixmap(target, self._robot_pixmap, source)
         self._label.setPixmap(self._board_pixmap)
@@ -266,15 +289,19 @@ class BoardWidget(QWidget):
 # Joins control widget and the board
 class MainView(QWidget):
 
-    def __init__(self):
+    def __init__(self, map_filename, robot_width, robot_height):
         super().__init__()
-        self._board_view = BoardWidget()
-        # self._robot = Robot(self._board_view.draw_robot, 0, 0, 180)  # rotation vector is reverted
-        self._control = ControlWidget(self._robot)
+        self._hscale_factor = 2
+        self._vscale_factor = 2
+        self._robot_width = robot_width * self._hscale_factor
+        self._robot_height = robot_height * self._hscale_factor
+        self._board_width = 400
+        self._board_height = 400
+        self._board_view = BoardWidget(map_filename, self._board_width, self._board_height,
+                                       self._robot_width, self._robot_height)
+        self._control = ControlWidget()
         self.initUI()
         self.show()
-        self._hscale_factor = 1
-        self._vscale_factor = 1
 
     def initUI(self):
         layout = QBoxLayout(QBoxLayout.RightToLeft, self)
@@ -284,11 +311,37 @@ class MainView(QWidget):
         self.setLayout(layout)
         self.setWindowTitle('Robot Emulator')
         self.setWindowIcon(QIcon("./assets/robo.png"))
-        self._board_view.update()
+        self._board_view.draw_robot(self._translate_y((0, 0)), 0)
 
-    def draw_board(self, board):
-        # update scale factors
-        pass
+    def _translate_y(self, point):
+        x, y = point
+        # point = x, self._board_height - y
+        return point
 
     def draw_robot(self, left_top_pos, angle):
-        pass
+        self._board_view.refresh()
+        self._board_view.draw_robot(self._translate_y(left_top_pos), angle)
+
+    def set_left_forward_handler(self, handler):
+        self._control.set_left_forward_handler(handler)
+
+    def set_left_backward_handler(self, handler):
+        self._control.set_left_backward_handler(handler)
+
+    def set_right_forward_handler(self, handler):
+        self._control.set_right_forward_handler(handler)
+
+    def set_right_backward_handler(self, handler):
+        self._control.set_right_backward_handler(handler)
+
+    def set_both_forward_handler(self, handler):
+        self._control.set_both_forward_handler(handler)
+
+    def set_both_backward_handler(self, handler):
+        self._control.set_both_backward_handler(handler)
+
+    def set_left_power_changed_handler(self, handler):
+        self._control.set_left_power_changed_handler(handler)
+
+    def set_right_power_changed_handler(self, handler):
+        self._control.set_right_power_changed_handler(handler)
