@@ -5,9 +5,13 @@ from PyQt5.QtGui import QIcon, QFont, QImage, qRgb, QPixmap, QTransform
 from PyQt5.QtWidgets import QMainWindow, QFrame, QDesktopWidget, QApplication, QScrollArea, QGraphicsView
 from PyQt5.QtCore import Qt, QBasicTimer, pyqtSignal, QRect
 from PyQt5.QtGui import QPainter, QColor, QPalette
+import sys, os
+
+robot_image_path = "./assets/robo.png"
+if not os.path.exists(robot_image_path):
+    print("WARNING: Image ", robot_image_path, " does not exist!")
 
 
-# from emulator.robot import Robot
 def get_screen_size():
     rect = QDesktopWidget().screenGeometry()
     return rect.width(), rect.height()
@@ -233,34 +237,39 @@ class EnginesNotBindedWidget(QWidget):
         self.setLayout(hbox_engine)
 
 
-# Draws the robot and the maze on the canvas. Checks collisions
+# Draws the robot and the maze on the canvas
 class BoardWidget(QWidget):
     def __init__(self, map_filename, width, height, robot_width, robot_height):
         super().__init__()
         self.timer = QBasicTimer()
         self._width = width
         self._height = height
-        self._robot_pixmap = QPixmap("./assets/robo.png")
+        self._robot_pixmap = QPixmap(robot_image_path)
         self._robot_width = robot_width
         self._robot_height = robot_height
         self._board_pixmap = QPixmap(width, height)
         self._board_pixmap.fill(QColor(0xffffff))
         self._label = QLabel()
         self._label.setPixmap(self._board_pixmap)
-        self._layout = QVBoxLayout()
+        self._layout = QVBoxLayout(self)
         self.initUI()
 
     def initUI(self):
+        # self._label.setBackgroundRole(QPalette.Base)
+        # self._label.setFixedSize(self._width, self._height)
+        # self._label.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
+        # self._label.setScaledContents(True)
+
         scroll = QScrollArea()
         scroll.setBackgroundRole(QPalette.Dark)
         scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         scroll.setWidget(self._label)
         scroll.setWidgetResizable(True)
-
         self._layout.addWidget(scroll)
+        # self._layout.addWidget(self._label)
         self.setLayout(self._layout)
-        self.setMinimumSize(400, 400)
+        # self.setMinimumSize(400, 400)
         self.setWindowTitle("Robot Emulator")
 
     def wheelEvent(self, event):
@@ -272,11 +281,11 @@ class BoardWidget(QWidget):
     # TODO: BoardWidget -- draw_robot
     def draw_robot(self, top_left, angle):
         painter = QPainter(self._board_pixmap)
-        xc, yc = top_left  # point to rotate around: top left corner
-        painter.translate(xc, yc)
-        painter.rotate(angle)
+        # xc, yc = top_left  # point to rotate around: top left corner
+        # painter.translate(xc, yc)
+        # painter.rotate(angle)
         x, y = top_left
-        target = QRect(x + 1, y + 1, self._robot_width, self._robot_height)
+        target = QRect(x, y, self._robot_width, self._robot_height)
         source = QRect(0., 0., self._robot_pixmap.width(), self._robot_pixmap.height())
         painter.drawPixmap(target, self._robot_pixmap, source)
         self._label.setPixmap(self._board_pixmap)
@@ -288,11 +297,10 @@ class BoardWidget(QWidget):
 
 # Joins control widget and the board
 class MainView(QWidget):
-
     def __init__(self, map_filename, robot_width, robot_height):
         super().__init__()
-        self._hscale_factor = 2
-        self._vscale_factor = 2
+        self._hscale_factor = 3
+        self._vscale_factor = 3
         self._robot_width = robot_width * self._hscale_factor
         self._robot_height = robot_height * self._hscale_factor
         self._board_width = 400
@@ -310,16 +318,16 @@ class MainView(QWidget):
         layout.addWidget(self._board_view)
         self.setLayout(layout)
         self.setWindowTitle('Robot Emulator')
-        self.setWindowIcon(QIcon("./assets/robo.png"))
-        self._board_view.draw_robot(self._translate_y((0, 0)), 0)
+        self.setWindowIcon(QIcon(robot_image_path))
 
     def _translate_y(self, point):
         x, y = point
-        # point = x, self._board_height - y
+        point = x, self._board_height - y
         return point
 
     def draw_robot(self, left_top_pos, angle):
         self._board_view.refresh()
+        left_top_pos = left_top_pos[0]*self._vscale_factor, left_top_pos[1]*self._hscale_factor
         self._board_view.draw_robot(self._translate_y(left_top_pos), angle)
 
     def set_left_forward_handler(self, handler):
@@ -345,3 +353,10 @@ class MainView(QWidget):
 
     def set_right_power_changed_handler(self, handler):
         self._control.set_right_power_changed_handler(handler)
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    b = MainView("smth", 10, 8)
+    b.draw_robot((0, 8), 0)
+    b.show()
+    sys.exit(app.exec_())

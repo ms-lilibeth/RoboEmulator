@@ -148,7 +148,7 @@ class Robot:
         return (self._distance_per_tick * 180) / (pi * radius)
 
     def set_state(self, left_top_pos, angle):
-        self._left_top_pos = complex(left_top_pos)
+        self._left_top_pos = complex(left_top_pos[0], left_top_pos[1])
         self._angle = angle
 
     def get_state(self):
