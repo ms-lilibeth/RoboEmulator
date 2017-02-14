@@ -138,7 +138,7 @@ class Robot:
     def _get_coords_delta(radius, angle):
         x = radius - radius * cos(angle)
         y = radius * sin(angle)
-        return x, y
+        return complex(x, y)
 
     def _get_turning_radius(self, l_power, r_power):
         return (self.d ** 2 + r_power ** 2 - l_power ** 2) / 2 * self.d + 1
