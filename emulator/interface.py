@@ -107,17 +107,6 @@ class ControlWidget(QFrame):
         self._bind_engines()  # as a default, engines are binded
         self._bind_powers()  # as a default, powers are binded
 
-    # Not used. We bind buttons from outside
-    # def _connect_buttons(self):
-    #     self._engines_binded_widget.bttn_forward.clicked.connect(self._robot.both_engines_forward)
-    #     self._engines_binded_widget.bttn_backward.clicked.connect(self._robot.both_engines_backward)
-    #     self._engines_not_binded_widget.bttn_left_forward.clicked.connect(self._robot.left_engine_forward)
-    #     self._engines_not_binded_widget.bttn_left_backward.clicked.connect(self._robot.left_engine_backward)
-    #     self._engines_not_binded_widget.bttn_right_forward.clicked.connect(self._robot.right_engine_forward)
-    #     self._engines_not_binded_widget.bttn_right_backward.clicked.connect(self._robot.right_engine_backward)
-    #     self._l_power.valueChanged.connect(self._robot.change_left_engine_power)
-    #     self._r_power.valueChanged.connect(self._robot.change_right_engine_power)
-
     def _bind_engines(self):
         self._engines_layout.setCurrentIndex(1)
         self._bttn_bind_engines.setChecked(True)
@@ -278,17 +267,18 @@ class BoardWidget(QWidget):
     def refresh(self):
         self._board_pixmap.fill(QColor(0xffffff))
 
-    # TODO: BoardWidget -- draw_robot
     def draw_robot(self, top_left, angle):
         painter = QPainter(self._board_pixmap)
-        # xc, yc = top_left  # point to rotate around: top left corner
-        # painter.translate(xc, yc)
-        # painter.rotate(angle)
-        x, y = top_left
+        xc, yc = top_left  # point to rotate around: top left corner
+        painter.translate(xc, yc)
+        painter.rotate(angle)
+        # x, y = top_left
+        x, y = 0, 0
         target = QRect(x, y, self._robot_width, self._robot_height)
         source = QRect(0., 0., self._robot_pixmap.width(), self._robot_pixmap.height())
         painter.drawPixmap(target, self._robot_pixmap, source)
         self._label.setPixmap(self._board_pixmap)
+        painter.resetTransform()
         painter.end()
 
     def get_size(self):
@@ -325,10 +315,14 @@ class MainView(QWidget):
         point = x, self._board_height - y
         return point
 
+    @staticmethod
+    def _translate_angle(angle):
+        return -angle
+
     def draw_robot(self, left_top_pos, angle):
         self._board_view.refresh()
         left_top_pos = left_top_pos[0]*self._vscale_factor, left_top_pos[1]*self._hscale_factor
-        self._board_view.draw_robot(self._translate_y(left_top_pos), angle)
+        self._board_view.draw_robot(self._translate_y(left_top_pos), self._translate_angle(angle))
 
     def set_left_forward_handler(self, handler):
         self._control.set_left_forward_handler(handler)
@@ -353,6 +347,7 @@ class MainView(QWidget):
 
     def set_right_power_changed_handler(self, handler):
         self._control.set_right_power_changed_handler(handler)
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

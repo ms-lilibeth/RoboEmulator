@@ -10,22 +10,26 @@ from PyQt5.QtCore import QTimer
 class Emulator:
     def __init__(self, map_filename):
         self._robot = Robot()
+        self._robot.set_state((50, 50), 0)
         self._board = Board(map_filename)
         self._view = MainView(map_filename, self._robot.width, self._robot.height)
         self._timer = QTimer()
         self._timer.timeout.connect(self._update)
-        self._connect_buttons()
+        self._set_handlers()
 
         self._stuck = {"LF": False, "LB": False, "RF": False, "RB": False, "BF": False, "BB": False}
         self._timer.start(100)
 
-    def _connect_buttons(self):
+    def _set_handlers(self):
         self._view.set_left_forward_handler(self._left_forward)
         self._view.set_left_backward_handler(self._left_backward)
         self._view.set_right_forward_handler(self._right_forward)
         self._view.set_right_backward_handler(self._right_backward)
         self._view.set_both_forward_handler(self._both_forward)
         self._view.set_both_backward_handler(self._both_backward)
+
+        self._view.set_left_power_changed_handler(self._robot.change_left_engine_power)
+        self._view.set_right_power_changed_handler(self._robot.change_right_engine_power)
 
     def _clear_stuck_flags(self):
         self._stuck = {"LF": False, "LB": False, "RF": False, "RB": False, "BF": False, "BB": False}
