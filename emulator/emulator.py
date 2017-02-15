@@ -10,7 +10,7 @@ from PyQt5.QtCore import QTimer
 class Emulator:
     def __init__(self, map_filename):
         self._robot = Robot()
-        self._robot.set_state((50, 50), 50)
+        self._robot.set_state((50, 50), 0)
         self._board = Board(map_filename)
         self._view = MainView(map_filename, self._robot.width, self._robot.height)
         self._timer = QTimer()
