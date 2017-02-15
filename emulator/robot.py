@@ -1,4 +1,4 @@
-from math import pi, cos, sin
+from math import pi, cos, sin, radians
 
 
 class Robot:
@@ -44,8 +44,8 @@ class Robot:
     #  Returns top left and right bottom corners coords from top left coord and angle
     @staticmethod
     def coords_from_state(top_left, angle):
-        dx = Robot.width*sin(angle)
-        dy = Robot.width*cos(angle)
+        dx = Robot.width*sin(radians(angle))
+        dy = Robot.width*cos(radians(angle))
         bottom_right = complex(top_left[0], top_left[1]) + complex(dx, dy)
         bottom_right = bottom_right.real, bottom_right.imag
         return top_left, bottom_right
@@ -150,22 +150,23 @@ class Robot:
 
     @staticmethod
     def _get_coords_delta_rotation(radius, angle):
-        x = radius - radius * cos(angle)
-        y = radius * sin(angle)
+        x = radius - radius * cos(radians(angle))
+        y = radius * sin(radians(angle))
         return complex(x, y)
-
 
     def _get_coords_delta_no_rotation(self):
         if self._angle == 0 or self._angle == 180:
             dx = 0
-            dy = self._distance_per_tick
-        elif self._angle == 90 or self._angle == -90:
-            dx = self._distance_per_tick
+            dy = self._distance_per_tick * cos(radians(self._angle))  # to multiply by -1 if necessary
+        elif self._angle == 90 or self._angle == 270:
+            dx = self._distance_per_tick * sin(radians(self._angle)) # to multiply by -1 if necessary
             dy = 0
         else:
-            dx = self._distance_per_tick*sin(self._angle)
-            dy = self._distance_per_tick*cos(self._angle)
-        return complex(dx, dy)
+            dx = self._distance_per_tick*sin(radians(self._angle))
+            dy = self._distance_per_tick*cos(radians(self._angle))
+
+        result = complex(dx*-1, dy)
+        return result
 
     def _get_turning_radius(self, l_power, r_power):
         return (self.d ** 2 + r_power ** 2 - l_power ** 2) / 2 * self.d + 1
@@ -176,7 +177,7 @@ class Robot:
 
     def set_state(self, left_top_pos, angle):
         self._left_top_pos = complex(left_top_pos[0], left_top_pos[1])
-        self._angle = angle
+        self._angle = self._angle_to_defined_range(angle)
         self._update_be_values = True
         self._update_re_values = True
         self._update_le_values = True

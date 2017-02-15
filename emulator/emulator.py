@@ -10,7 +10,7 @@ from PyQt5.QtCore import QTimer
 class Emulator:
     def __init__(self, map_filename):
         self._robot = Robot()
-        self._robot.set_state((50, 50), 0)
+        self._robot.set_state((50, 50), 50)
         self._board = Board(map_filename)
         self._view = MainView(map_filename, self._robot.width, self._robot.height)
         self._timer = QTimer()
@@ -18,7 +18,7 @@ class Emulator:
         self._set_handlers()
 
         self._stuck = {"LF": False, "LB": False, "RF": False, "RB": False, "BF": False, "BB": False}
-        self._timer.start(100)
+        self._timer.start(50)
 
     def _set_handlers(self):
         self._view.set_left_forward_handler(self._left_forward)

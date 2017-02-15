@@ -165,6 +165,7 @@ class ControlWidget(QFrame):
     def set_right_power_changed_handler(self, handler):
         self._r_power.valueChanged.connect(handler)
 
+
 class EnginesBindedWidget(QWidget):
 
     def __init__(self):
@@ -177,6 +178,10 @@ class EnginesBindedWidget(QWidget):
         vbox_engine = QVBoxLayout()
         self.bttn_forward.setIcon(QIcon("./assets/arrow-up.png"))
         self.bttn_backward.setIcon(QIcon("./assets/arrow-down.png"))
+        self.bttn_forward.setAutoRepeat(True)
+        self.bttn_backward.setAutoRepeat(True)
+        self.bttn_forward.setAutoRepeatInterval(50)
+        self.bttn_backward.setAutoRepeatInterval(50)
         vbox_engine.addWidget(self.bttn_forward)
         vbox_engine.addWidget(self.bttn_backward)
         vbox_engine.addStretch(1)
@@ -203,6 +208,14 @@ class EnginesNotBindedWidget(QWidget):
         self.bttn_left_backward.setIcon(QIcon("./assets/arrow-down.png"))
         self.bttn_right_forward.setIcon(QIcon("./assets/arrow-up.png"))
         self.bttn_right_backward.setIcon(QIcon("./assets/arrow-down.png"))
+        self.bttn_left_forward.setAutoRepeat(True)
+        self.bttn_left_backward.setAutoRepeat(True)
+        self.bttn_right_forward.setAutoRepeat(True)
+        self.bttn_right_backward.setAutoRepeat(True)
+        self.bttn_left_forward.setAutoRepeatInterval(50)
+        self.bttn_left_backward.setAutoRepeatInterval(50)
+        self.bttn_right_forward.setAutoRepeatInterval(50)
+        self.bttn_right_backward.setAutoRepeatInterval(50)
         lbl_l = QLabel("L")
         lbl_r = QLabel("R")
         lbl_l.setAlignment(Qt.AlignCenter)
@@ -244,11 +257,6 @@ class BoardWidget(QWidget):
         self.initUI()
 
     def initUI(self):
-        # self._label.setBackgroundRole(QPalette.Base)
-        # self._label.setFixedSize(self._width, self._height)
-        # self._label.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
-        # self._label.setScaledContents(True)
-
         scroll = QScrollArea()
         scroll.setBackgroundRole(QPalette.Dark)
         scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
@@ -256,9 +264,8 @@ class BoardWidget(QWidget):
         scroll.setWidget(self._label)
         scroll.setWidgetResizable(True)
         self._layout.addWidget(scroll)
-        # self._layout.addWidget(self._label)
         self.setLayout(self._layout)
-        # self.setMinimumSize(400, 400)
+        self.setMinimumSize(400, 400)
         self.setWindowTitle("Robot Emulator")
 
     def wheelEvent(self, event):
@@ -272,7 +279,6 @@ class BoardWidget(QWidget):
         xc, yc = top_left  # point to rotate around: top left corner
         painter.translate(xc, yc)
         painter.rotate(angle)
-        # x, y = top_left
         x, y = 0, 0
         target = QRect(x, y, self._robot_width, self._robot_height)
         source = QRect(0., 0., self._robot_pixmap.width(), self._robot_pixmap.height())
