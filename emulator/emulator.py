@@ -10,7 +10,7 @@ from PyQt5.QtCore import QTimer
 class Emulator:
     def __init__(self, map_filename):
         self._robot = Robot()
-        self._robot.set_state((50, 50), 0)
+        self._robot.make_step((50, 50), 0)
         self._board = Board(map_filename)
         self._view = MainView(map_filename, self._robot.width, self._robot.height)
         self._timer = QTimer()
@@ -46,7 +46,7 @@ class Emulator:
             self._clear_stuck_flags()
             self._stuck["LF"] = True
         else:
-            self._robot.set_state(top_left, angle)
+            self._robot.make_step(top_left, angle)
 
     def _left_backward(self):
         if self._stuck["LB"]:
@@ -56,7 +56,7 @@ class Emulator:
             self._clear_stuck_flags()
             self._stuck["LB"] = True
         else:
-            self._robot.set_state(top_left, angle)
+            self._robot.make_step(top_left, angle)
 
     def _right_forward(self):
         if self._stuck["RF"]:
@@ -66,7 +66,7 @@ class Emulator:
             self._clear_stuck_flags()
             self._stuck["RF"] = True
         else:
-            self._robot.set_state(top_left, angle)
+            self._robot.make_step(top_left, angle)
 
     def _right_backward(self):
         if self._stuck["RB"]:
@@ -76,7 +76,7 @@ class Emulator:
             self._clear_stuck_flags()
             self._stuck["RB"] = True
         else:
-            self._robot.set_state(top_left, angle)
+            self._robot.make_step(top_left, angle)
 
     def _both_forward(self):
         if self._stuck["BF"]:
@@ -86,7 +86,7 @@ class Emulator:
             self._clear_stuck_flags()
             self._stuck["BF"] = True
         else:
-            self._robot.set_state(top_left, angle)
+            self._robot.make_step(top_left, angle)
 
     def _both_backward(self):
         if self._stuck["BB"]:
@@ -96,4 +96,4 @@ class Emulator:
             self._clear_stuck_flags()
             self._stuck["BB"] = True
         else:
-            self._robot.set_state(top_left, angle)
+            self._robot.make_step(top_left, angle)
